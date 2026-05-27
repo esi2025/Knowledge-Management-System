@@ -1,0 +1,6 @@
+{
+  "name": "Power Plant Technical and Welfare Knowledge Management System",
+  "description": "سامانه مدیریت دانش و تجربیات تخصصی نیروگاه برق با اولویت‌بندی موقت بر واحد فرهنگی، ورزشی و رفاهی پرسنل نیروگاهی و امکان جابه‌جایی پویای دپارتمان‌ها نوشته شده توسط مهدی اسماعیلی.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

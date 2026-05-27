@@ -1,0 +1,50 @@
+@import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+body {
+  direction: rtl;
+  text-align: right;
+  font-family: "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
+}
+
+@media print {
+  /* مخفی کردن المان‌های ناوبری، سایدبار، فوتر و دکمه‌ها در پرینت رسمی کتبی */
+  header,
+  aside,
+  button,
+  form,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* تطبیق و همسان‌سازی عرض کلی صفحه کاغذ */
+  body,
+  main,
+  #root,
+  .print\:p-0 {
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    font-size: 11pt !important;
+  }
+
+  /* اجبار مرورگر به چاپ رنگ‌های بومی بهینه */
+  .bg-slate-50,
+  .bg-emerald-50,
+  .bg-red-50,
+  .bg-amber-50 {
+    background-color: #f8fafc !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    border-right-width: 4px !important;
+  }
+}
