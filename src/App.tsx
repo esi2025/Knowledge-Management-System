@@ -1962,7 +1962,7 @@ export default function App() {
             <span>💻</span>
             <span>طراح و برنامه نویس: <strong>مهدی اسماعیلی</strong></span>
             <span className="text-slate-500 mx-2">|</span>
-            <span>نسخه ویژه آزمون رفاهی تولید نیرو:</span>
+            <span>نسخه ویژه به سفارش آقای مجید اسماعیلی:</span>
             <code className="bg-slate-800 text-teal-400 px-2.5 py-0.5 rounded-md font-mono text-[10px]">v2.5.0-Welfare-Release</code>
           </p>
           <p className="text-[10px] text-slate-500">تمامی حقوق علمی و معنوی پرونده‌های مستند دانش فنی محفوظ برای سازمان برق نیروگاه‌های جنوب کشور می‌باشد.</p>
