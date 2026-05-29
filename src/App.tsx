@@ -36,6 +36,17 @@ import {
   FolderLock
 } from 'lucide-react';
 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell
+} from 'recharts';
+
 import { User, Department, Category, KnowledgeEntry, Question, Answer, VisualTip } from './types';
 import { 
   DEPARTMENTS, 
@@ -49,6 +60,21 @@ import {
 
 // دریافت دیتای لوکال برای مانا بودن اطلاعات در لایو پریویو
 const STORAGE_PREFIX = 'powerplant_km_';
+
+// کامپوننت تولتیپ سفارشی برای نمودار Recharts به زبان شیرین فارسی
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-slate-900 text-white p-3 rounded-xl border border-slate-700 shadow-xl font-sans text-xs text-right" dir="rtl">
+        <p className="font-bold mb-1 text-slate-200">{payload[0].payload.كامل}</p>
+        <p className="text-teal-400 font-mono mt-0.5">
+          تعداد اسناد علمی مصوب: <strong className="text-sm font-black text-white">{payload[0].value}</strong>
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function App() {
   // ۱. حالت‌های ورود و احراز هویت دفتری
@@ -552,6 +578,21 @@ export default function App() {
       maxCount
     };
   }, [entries, activeDepartmentId, questions, visualTips]);
+
+  // محاسبات توزیع کل اسناد مصوب به تفکیک دپارتمان برای نمودار Recharts
+  const departmentDistribution = useMemo(() => {
+    return DEPARTMENTS.map(dept => {
+      const approvedCount = entries.filter(e => e.departmentId === dept.id && e.status === 'approved').length;
+      return {
+        // نام کوتاه فارسی برای برچسب‌های محور افقی
+        shortName: dept.id === 'welfare' ? 'رفاهی و ورزشی' : dept.id === 'operations' ? 'فنی نیروگاه' : 'ایمنی HSE',
+        name: dept.id === 'welfare' ? 'رفاهی دپارتمان' : dept.id === 'operations' ? 'فنی نیروگاه' : 'ایمنی HSE',
+        كامل: dept.name,
+        'اسناد مصوب': approvedCount,
+        fill: dept.id === 'welfare' ? '#0d9488' : dept.id === 'operations' ? '#eab308' : '#ef4444' // teal-600, amber-500, red-500
+      };
+    });
+  }, [entries]);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans leading-normal flex flex-col" dir="rtl">
@@ -1242,10 +1283,82 @@ export default function App() {
                 </div>
 
                 {/* بخش چارت یا آمار فراوانی در پایین پورتال */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="space-y-6">
                   
-                  {/* چارت فراوانی دسته‌بندی‌ها به طور بومی */}
-                  <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                  {/* ردیف اول: نمودار توزیع بر اساس دپارتمان‌ها با Recharts و نخبگان مشارکت‌کننده */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    {/* نمودار توزیع بر اساس دپارتمان‌ها با Recharts */}
+                    <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-5 h-[340px] flex flex-col justify-between">
+                      <div>
+                        <h3 className="text-xs font-bold text-slate-700 flex items-center gap-2 mb-2 border-b pb-3">
+                          <span>📊</span>
+                          <span>توزیع اسناد علمی مصوب به تفکیک دپارتمان‌های اصلی سازمان (Recharts)</span>
+                        </h3>
+                        <p className="text-[10px] text-slate-400 -mt-1 mb-2">مقایسه پویای سطح مستندسازی و میزان مشارکت بخش‌های مختلف نیروگاهی</p>
+                      </div>
+                      
+                      <div className="w-full h-[220px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart
+                            data={departmentDistribution}
+                            margin={{ top: 10, right: 10, left: -20, bottom: 5 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                            <XAxis 
+                              dataKey="shortName" 
+                              tick={{ fill: '#475569', fontSize: 10, fontWeight: 'bold' }} 
+                              axisLine={{ stroke: '#cbd5e1' }}
+                              tickLine={false}
+                            />
+                            <YAxis 
+                              tick={{ fill: '#475569', fontSize: 10, fontWeight: 'bold' }} 
+                              axisLine={{ stroke: '#cbd5e1' }}
+                              tickLine={false}
+                              allowDecimals={false}
+                            />
+                            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(239, 246, 255, 0.4)' }} />
+                            <Bar dataKey="اسناد مصوب" radius={[6, 6, 0, 0]} maxBarSize={45}>
+                              {departmentDistribution.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.fill} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+
+                    {/* نخبگان مشارکت کننده */}
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between text-xs h-[340px]">
+                      <div className="space-y-3">
+                        <h3 className="font-extrabold text-slate-700 border-b pb-3 flex items-center gap-1.5">
+                          <Award className="w-4 h-4 text-amber-500" />
+                          <span>سرپرستان ناظر فعال این دپارتمان</span>
+                        </h3>
+                        <ul className="space-y-2.5">
+                          <li className="flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border">
+                            <span className="font-bold">🥇 دکتر علوی</span>
+                            <span className="bg-teal-100 text-teal-800 text-[10px] font-bold px-2 py-0.5 rounded-full">۲ تجربه مصوب</span>
+                          </li>
+                          <li className="flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border">
+                            <span className="font-bold">🥈 مهندس رضایی</span>
+                            <span className="bg-teal-100 text-teal-800 text-[10px] font-bold px-2 py-0.5 rounded-full">۱ تجربه مصوب</span>
+                          </li>
+                          <li className="flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border">
+                            <span className="font-bold">🥉 مهندس عباسی</span>
+                            <span className="bg-slate-100 text-slate-500 text-[10px] px-2 py-0.5 rounded-full">پیش‌نویس جدید</span>
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div className="bg-teal-50 text-teal-800 p-3 rounded-lg border border-teal-200 leading-relaxed mt-4 text-[10px] text-justify">
+                        💡 <strong>راهنما:</strong> اسناد ثبت‌شده ناظران جدیداً به صورت پیش‌نویس ذخیره شده و پس از ممیزی کامل توسط کارشناس ممیز ارشد، در آرشیو عمومی اینترانت سازمان نمایان خواهند شد.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ردیف دوم: فراوانی جزئی دسته‌بندی‌های دپارتمان فعال */}
+                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
                     <h3 className="text-xs font-bold text-slate-700 flex items-center gap-2 mb-4 border-b pb-3">
                       <span>📊</span>
                       <span>فراوانی اسناد مصوب در رسته‌های دپارتمان فعال</span>
@@ -1267,34 +1380,6 @@ export default function App() {
                           </div>
                         );
                       })}
-                    </div>
-                  </div>
-
-                  {/* نخبگان مشارکت کننده */}
-                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between text-xs">
-                    <div className="space-y-3">
-                      <h3 className="font-extrabold text-slate-700 border-b pb-3 flex items-center gap-1.5">
-                        <Award className="w-4 h-4 text-amber-500" />
-                        <span>سرپرستان ناظر فعال این دپارتمان</span>
-                      </h3>
-                      <ul className="space-y-2.5">
-                        <li className="flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border">
-                          <span className="font-bold">🥇 دکتر علوی</span>
-                          <span className="bg-teal-100 text-teal-800 text-[10px] font-bold px-2 py-0.5 rounded-full">۲ تجربه مصوب</span>
-                        </li>
-                        <li className="flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border">
-                          <span className="font-bold">🥈 مهندس رضایی</span>
-                          <span className="bg-teal-100 text-teal-800 text-[10px] font-bold px-2 py-0.5 rounded-full">۱ تجربه مصوب</span>
-                        </li>
-                        <li className="flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border">
-                          <span className="font-bold">🥉 مهندس عباسی</span>
-                          <span className="bg-slate-100 text-slate-500 text-[10px] px-2 py-0.5 rounded-full">پیش‌نویس جدید</span>
-                        </li>
-                      </ul>
-                    </div>
-
-                    <div className="bg-teal-50 text-teal-800 p-3 rounded-lg border border-teal-200 leading-relaxed mt-4 text-[10px] text-justify">
-                      💡 <strong>راهنما:</strong> اسناد ثبت‌شده ناظران جدیداً به صورت پیش‌نویس ذخیره شده و پس از ممیزی کامل توسط کارشناس ممیز ارشد، در آرشیو عمومی اینترانت سازمان نمایان خواهند شد.
                     </div>
                   </div>
 
